@@ -9,18 +9,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3
 
     steps:
       - name: Download project
         uses: actions/checkout@v4
-
-      - name: Build Android APK with Godot
-        uses: barichello/godot-ci:4.3
-        with:
-          godot-version: 4.3
-          export-templates: true
-        env:
-          GODOT_VERSION: 4.3
 
       - name: Export Android APK
         run: |

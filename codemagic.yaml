@@ -1,0 +1,44 @@
+workflows:
+  yousef-general-android:
+    name: Yousef General - Android APK
+    max_build_duration: 120
+    instance_type: linux
+
+    environment:
+      java: 17
+      vars:
+        GODOT_VERSION: "4.3"
+
+    scripts:
+      - name: Install Godot and export templates
+        script: |
+          set -eu
+          cd "$CM_BUILD_DIR"
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip" -O /tmp/godot.zip
+          unzip -o /tmp/godot.zip -d /tmp
+          mv "/tmp/Godot_v${GODOT_VERSION}-stable_linux.x86_64" /tmp/godot
+          chmod +x /tmp/godot
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz" -O /tmp/templates.tpz
+          mkdir -p /tmp/godot-templates
+          unzip -oq /tmp/templates.tpz -d /tmp/godot-templates
+          mkdir -p "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          cp -R /tmp/godot-templates/templates/. "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable/"
+
+      - name: Validate project
+        script: |
+          set -eu
+          cd "$CM_BUILD_DIR"
+          test -f project.godot
+          test -f export_presets.cfg
+          /tmp/godot --headless --path . --editor --quit
+
+      - name: Export Android APK
+        script: |
+          set -eu
+          cd "$CM_BUILD_DIR"
+          mkdir -p build/android
+          /tmp/godot --headless --path . --export-debug "Android" build/android/YousefGeneral.apk
+          test -s build/android/YousefGeneral.apk
+
+    artifacts:
+      - build/android/*.apk
